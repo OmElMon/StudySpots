@@ -1,51 +1,30 @@
 # StudySpots
 
-StudySpots is a mobile-first café discovery app for finding places to study, work, go on casual dates, hang out with groups, or stay productive late at night.
-
-It includes a Flask REST API, SQLite seed data, and a React + Vite + Tailwind frontend with list and map-style views.
+A café discovery prototype for choosing a place to study, work, or meet friends. A React interface pairs amenity filters and café detail pages with a Flask REST API and a small SQLite demo dataset.
 
 ## Features
 
-- Search cafés by city, name, address, or "near me"
-- Filter by quiet study spot, groups, open late, outlets, Wi-Fi, parking, and cozy/aesthetic vibes
-- Featured cafés homepage
-- Café detail pages with photos, hours, vibe tags, best-for use cases, amenities, and reviews
-- Save favorite cafés locally in the browser
-- Leave study/hangout-focused reviews
-- Study score out of 10 based on Wi-Fi, outlets, noise, seating, and hours
-- REST API backed by SQLite
-- Optional map integration placeholder with coordinate-ready café records
+- Search by café name, city, or address.
+- Filter for Wi-Fi, outlets, quiet spaces, parking, groups, cozy spaces, and late hours.
+- Browse featured cafés and detail pages with photos, amenities, ratings, and reviews.
+- Save favorites in browser storage and submit reviews to the API.
+- Switch between a card grid and an illustrative map panel.
 
-## Project Structure
+## Architecture
 
-```text
-studyspots/
-  backend/
-    app.py
-    database.py
-    seed.py
-    requirements.txt
-    studyspots.db  # generated after running seed.py
-  frontend/
-    index.html
-    package.json
-    postcss.config.js
-    tailwind.config.js
-    vite.config.js
-    src/
-      App.jsx
-      api.js
-      main.jsx
-      styles.css
-      components/
-      pages/
-  README.md
+```mermaid
+flowchart LR
+  UI[React + Vite + Tailwind] --> API[Flask REST API]
+  API --> DB[(SQLite)]
+  Seed[seed.py demo records] --> DB
+  UI --> Favorites[Browser localStorage]
 ```
 
-## Backend Setup
+## Run locally
 
 ```bash
-cd backend
+git clone https://github.com/OmElMon/StudySpots.git
+cd StudySpots/backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -53,33 +32,38 @@ python seed.py
 python app.py
 ```
 
-The seed command creates the local SQLite database. The API runs at `http://localhost:5001`.
+On Windows, activate with `.venv\Scripts\activate` instead. The API listens on port 5001. **The seed command deletes and replaces all cafés and reviews in the local database.**
 
-## Frontend Setup
+In a second terminal:
 
 ```bash
-cd frontend
-npm install
+cd StudySpots/frontend
+npm ci
 npm run dev
 ```
 
-The app runs at `http://localhost:5173`.
+Open [localhost:5173](http://localhost:5173). Set `VITE_API_BASE` to change the default API base, `http://localhost:5001/api`.
 
-## API Endpoints
+## API
 
-- `GET /api/health`
-- `GET /api/cafes`
-- `GET /api/cafes/featured`
-- `GET /api/cafes/<id>`
-- `GET /api/cafes/<id>/reviews`
-- `POST /api/cafes/<id>/reviews`
-
-Example café query:
+| Method | Route | Purpose |
+| --- | --- | --- |
+| GET | `/api/health` | Service health |
+| GET | `/api/cafes` | Search and filter |
+| GET | `/api/cafes/featured` | Featured records |
+| GET | `/api/cafes/<id>` | Details with reviews |
+| GET / POST | `/api/cafes/<id>/reviews` | Read / add reviews |
 
 ```bash
 curl "http://localhost:5001/api/cafes?city=Seattle&quiet=true&wifi=true&outlets=true"
 ```
 
-## Map Integration
+The late-hours filter key is `openLate`. Filters are combined by the backend and results are sorted by study score and hangout rating.
 
-The MVP includes latitude and longitude for each café and a polished map placeholder. To integrate a live map later, replace `MapView.jsx` with Mapbox, Google Maps, or Leaflet markers using each café's `latitude` and `longitude`.
+## Validation and limits
+
+The repository provides `npm run build` and `npm run preview` in `frontend/`, but has no automated test suite or GitHub Actions runs at the time of this documentation audit. Installation and end-to-end operation have not been rerun for this README update.
+
+The dataset contains six demo café records with stored study scores. Scores are not calculated dynamically. The map positions markers by array index rather than geographic coordinates; café coordinates are available for a future map integration. “Near me” bypasses the city filter and does not use browser geolocation. Reviews have no user authentication or moderation, and numeric rating validation needs further work before public use.
+
+No live deployment or license file is included in the repository.
